@@ -18,28 +18,40 @@ def get_quote():
 		return image_url, caption
 
 def img2ascii(f, width = 100, GCF = 0.035, url = False):
+	# More levels: $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~i!lI;:,\"^`".
+	# These need to be arranged in reverse though, from lightest to darkest:
+	# ."`^",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$
+	# chars = np.asarray(list(' .,:;irsXA253hMHGS#9B&@'))
+	# chars = np.asarray(list(' ."`^",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'))
 	chars = np.asarray(list(' .~^:┐¡Γ░▒╠╬╣▓█'))
+	# chars = np.asarray(list(' .~_^:¡+!|#░▒╠╬╣▓█'))
+	#if len(sys.argv) != 4: print( 'Usage: ./asciinator.py image scale factor' ); sys.exit()
+	#f, SC, GCF, WCF = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), 7/4
 	# WCF = width scaling factor to account for higher-than-wide characters
+	#WCF = 7/4 # not needed anymore, using the inverse to scale the y dimension and fixing x to 80
 	WCF = 4/7
 	if url:
 		imgResponse = requests.get(f)
 		img = Image.open(BytesIO(imgResponse.content))
 	else:
 		img = Image.open(f)
-	# Set width
+	# Set to 80 characters wide
 	S = (width, round(img.size[1]*WCF*width/img.size[0]))
+	#S = ( round(img.size[0]*SC*WCF), round(img.size[1]*SC) )
 	img = np.sum( np.asarray( img.resize(S) ), axis=2)
 	img -= img.min()
-	img = (img/img.max())**GCF*(chars.size-1)
-	# img = 1/(1 + math.e**(-GCF*(((img - img.min())- ((img.max() - img.min())/2)) - 0.5)))*(chars.size-1)
-	# img = (1*((img - img.min()))/(2*(img.max() - img.min())))**GCF*(chars.size-1)
+	#img = (img/img.max())**GCF*(chars.size-1)
+	#img = 1/(1 + math.e**(-GCF*(((img - img.min())- ((img.max() - img.min())/2)) - 0.5)))*(chars.size-1)
+	img = (1*((img - img.min()))/(2*(img.max() - img.min())))**GCF*(chars.size-1)
 	print( "\n".join( ("".join(r) for r in chars[img.astype(int)]) ) )
+	#print(S)
 
 def f2a(width = 100, GCF = 0.035):
 	furl, quote = get_quote()
+	#print(furl)
 	img2ascii(furl, width = width, GCF = GCF, url = True)
 	print("\n" + quote)
 
 if __name__ == '__main__':
-    f2a(width = 120, GCF = 1)
+    f2a(width = 120, GCF = 0.7)
 
