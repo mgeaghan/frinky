@@ -1,0 +1,7 @@
+Add in search function.
+
+Can query using the following URL format:
+https://frinkiac.com/?p=search&q=kill+anyone+who+looks+at+me+cockeyed
+
+Can also add specific episode:
+https://frinkiac.com/?p=search&q=kill+anyone+who+looks+at+me+cockeyed&e=S04E06&t=895227
