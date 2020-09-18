@@ -17,7 +17,7 @@ def check_args(args=None):
 	parser.add_argument('-g', '--gcf', help="Scaling factor", default="1")
 	arguments = parser.parse_args(args)
 	arguments.width = int(arguments.width)
-	arguments.gcf = int(arguments.gcf)
+	arguments.gcf = float(arguments.gcf)
 	return(arguments)
 
 def get_quote():
