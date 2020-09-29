@@ -1,4 +1,4 @@
-#!/Users/michaelgeaghan/anaconda3/envs/frinky/bin/python 
+#!/usr/bin/env python3
 import requests
 from PIL import Image
 import numpy as np
