@@ -1,10 +1,12 @@
 Add in search function.
 
 Can query using the following URL format:
-https://frinkiac.com/?p=search&q=kill+anyone+who+looks+at+me+cockeyed
+https://frinkiac.com/api/search?q=kill+anyone+who+looks+at+me+cockeyed
 
-Can also add specific episode:
-https://frinkiac.com/?p=search&q=kill+anyone+who+looks+at+me+cockeyed&e=S04E06&t=895227
+Can grab a specific episode and timestamp with:
+https://frinkiac.com/api/caption?e=S01E06&t=105256
+
+The results of grabbing a specific timepoint will give the current frame with timepoints for captions, as well as the previous three and the next three frames. This will be useful for making an animation.
 
 There's a *possibility* of adding a colour option.
 In bash, you would do something like this:
@@ -25,3 +27,17 @@ Cyan         0;36     Light Cyan    1;36
 Light Gray   0;37     White         1;37
 
 I would need to work out how to translate that to python.
+
+Example API output
+
+Quote search:
+URL: https://frinkiac.com/api/search?q=kill+anyone+who+looks+at+me+cockeyed
+Output: [{"Id":1108059,"Episode":"S08E18","Timestamp":1248529},{"Id":1108060,"Episode":"S08E18","Timestamp":1248730},{"Id":1108052,"Episode":"S08E18","Timestamp":1247211},{"Id":1108057,"Episode":"S08E18","Timestamp":1248162},{"Id":1108063,"Episode":"S08E18","Timestamp":1249297},{"Id":1108062,"Episode":"S08E18","Timestamp":1249113},{"Id":1108065,"Episode":"S08E18","Timestamp":1249681},{"Id":1108067,"Episode":"S08E18","Timestamp":1250064},{"Id":1108056,"Episode":"S08E18","Timestamp":1247962},{"Id":1108066,"Episode":"S08E18","Timestamp":1249864},{"Id":1108051,"Episode":"S08E18","Timestamp":1247011},{"Id":1108058,"Episode":"S08E18","Timestamp":1248346},{"Id":1108064,"Episode":"S08E18","Timestamp":1249480},{"Id":1108054,"Episode":"S08E18","Timestamp":1247579},{"Id":1108053,"Episode":"S08E18","Timestamp":1247395},{"Id":1108061,"Episode":"S08E18","Timestamp":1248913},{"Id":1108055,"Episode":"S08E18","Timestamp":1247779},{"Id":1108070,"Episode":"S08E18","Timestamp":1250248},{"Id":888503,"Episode":"S07E10","Timestamp":1280295},{"Id":1432280,"Episode":"S10E21","Timestamp":590956},{"Id":888490,"Episode":"S07E10","Timestamp":1277926},{"Id":2142013,"Episode":"S16E08","Timestamp":234109},{"Id":675938,"Episode":"S06E02","Timestamp":1118517},{"Id":671422,"Episode":"S06E02","Timestamp":225158},{"Id":2273147,"Episode":"S17E11","Timestamp":638471},{"Id":2087440,"Episode":"S04E06","Timestamp":895644},{"Id":2201108,"Episode":"S16E20","Timestamp":684560},{"Id":1315941,"Episode":"S10E02","Timestamp":583031},{"Id":1875258,"Episode":"S14E08","Timestamp":498164},{"Id":2288661,"Episode":"S17E13","Timestamp":327536},{"Id":1432276,"Episode":"S10E21","Timestamp":589705},{"Id":565052,"Episode":"S05E07","Timestamp":142024},{"Id":777829,"Episode":"S06E19","Timestamp":331981},{"Id":888492,"Episode":"S07E10","Timestamp":1278259},{"Id":2273128,"Episode":"S17E11","Timestamp":637428},{"Id":1782225,"Episode":"S13E14","Timestamp":311311}]
+
+Caption search:
+URL: https://frinkiac.com/api/caption?e=S01E06&t=105256
+Output: {"Episode":{"Id":341,"Key":"S01E06","Season":1,"EpisodeNumber":6,"Title":"Moaning Lisa","Director":"Wesley Archer","Writer":"Al Jean \u0026 Mike Reiss","OriginalAirDate":"11-Feb-90","WikiLink":"https://en.wikipedia.org/wiki/Moaning_Lisa"},"Frame":{"Id":33409,"Episode":"S01E06","Timestamp":105256},"Subtitles":[{"Id":3260,"RepresentativeTimestamp":104204,"Episode":"S01E06","StartTimestamp":103633,"EndTimestamp":105200,"Content":"( knocking)","Language":"en"},{"Id":3261,"RepresentativeTimestamp":105873,"Episode":"S01E06","StartTimestamp":105200,"EndTimestamp":107066,"Content":"( sighs)","Language":"en"},{"Id":3262,"RepresentativeTimestamp":107341,"Episode":"S01E06","StartTimestamp":107066,"EndTimestamp":108100,"Content":"LISA!","Language":"en"}],"Nearby":[{"Id":33406,"Episode":"S01E06","Timestamp":104622},{"Id":33407,"Episode":"S01E06","Timestamp":104838},{"Id":33414,"Episode":"S01E06","Timestamp":105039},{"Id":33409,"Episode":"S01E06","Timestamp":105256},{"Id":33410,"Episode":"S01E06","Timestamp":105456},{"Id":33411,"Episode":"S01E06","Timestamp":105673},{"Id":33412,"Episode":"S01E06","Timestamp":105873}]}
+
+Random search:
+URL: https://frinkiac.com/api/random
+{"Episode":{"Id":390,"Key":"S03E20","Season":3,"EpisodeNumber":20,"Title":"Colonel Homer","Director":"Mark Kirkland","Writer":"Matt Groening","OriginalAirDate":"26-Mar-92","WikiLink":"https://en.wikipedia.org/wiki/Colonel_Homer"},"Frame":{"Id":358897,"Episode":"S03E20","Timestamp":119376},"Subtitles":[{"Id":29312,"RepresentativeTimestamp":117273,"Episode":"S03E20","StartTimestamp":116767,"EndTimestamp":118100,"Content":"Perfect.","Language":"en"},{"Id":29313,"RepresentativeTimestamp":118525,"Episode":"S03E20","StartTimestamp":118100,"EndTimestamp":120633,"Content":"All right, everybody, out the window.","Language":"en"},{"Id":29314,"RepresentativeTimestamp":121661,"Episode":"S03E20","StartTimestamp":120633,"EndTimestamp":122433,"Content":"Homer: They all look great.","Language":"en"}],"Nearby":[{"Id":358894,"Episode":"S03E20","Timestamp":118742},{"Id":358895,"Episode":"S03E20","Timestamp":118942},{"Id":358896,"Episode":"S03E20","Timestamp":119159},{"Id":358897,"Episode":"S03E20","Timestamp":119376},{"Id":358899,"Episode":"S03E20","Timestamp":121244},{"Id":358900,"Episode":"S03E20","Timestamp":121461},{"Id":358901,"Episode":"S03E20","Timestamp":121661}]}
