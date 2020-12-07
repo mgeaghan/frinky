@@ -16,23 +16,24 @@ import copy
 def check_args(args=None):
     parser = argparse.ArgumentParser(description="Get an ASCII image from frinkiac. Either search for a quote or get a randome one!", formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-r', '--random', help="Get a random quote.", action="store_true")
-    parser.add_argument('-q', '--quote', help="Search for a quote.", default="may god have mercy on us all")
-    parser.add_argument('-i', '--index', help="Index indicating which search result to return. 0-based. Default = '0'.", default="0")
+    parser.add_argument('-q', '--quote', help="Search for a quote.", default="")
+    parser.add_argument('-i', '--match_index', help="Index indicating which search result to return. 0-based. Default = '0'.", default="0")
     parser.add_argument('-c', '--caption', help="Custom caption.", default="")
     parser.add_argument('-s', '--season', help="Specify a season. Must be used in conjunction with -e/--episode and -t/--timestamp.", default="")
     parser.add_argument('-e', '--episode', help="Specify an episode. Must be used in conjunction with -s/--season and -t/--timestamp.", default="")
     parser.add_argument('-t', '--timestamp', help="Specify a timestamp. Must be used in conjunction with -s/--season and -e/--episode.", default="")
     parser.add_argument('-T', '--endTimestamp', help="Specify an endpoint timestamp. Must be used in conjunction with -s/--season, -e/--episode, and -t/--timestamp. Only used when using -G/--gif.", default="")
     parser.add_argument('-G', '--gif', help="Specify an animation should be returned with specified length starting from first best match or from specified timestamp of specified episode. Must either specify a duration with -l/--length or an endpoint timestamp with -T/--endTimestamp.", action="store_true")
-    parser.add_argument('-l', '--length', help="Specify length (in seconds) of animation to be returned. Only used in conjunction with -G/--gif.", default="1.0")
-    parser.add_argument('-S', '--speed', help="Specify the speed at which an animation plays. 1 = normal rate. Only used in conjunction with -G/--gif. Default = '1'.", default="1.0")
+    parser.add_argument('-l', '--length', help="Specify length (in seconds) of animation to be returned. Only used in conjunction with -G/--gif.", default="")
+    parser.add_argument('-S', '--interval', help="Specify the interval between frames, in seconds. Only used in conjunction with -G/--gif. Default = '0.2'.", default="0.2")
     parser.add_argument('-C', '--char', help="Specify a character set (e.g. 0, 1, 2, ...). Use if the default set doesn't work well. Default = '0'.", default="0")
     parser.add_argument('-w', '--width', help="ASCII art width.", default="120")
-    parser.add_argument('-g', '--gcf', help="Scaling factor.", default="1")
-    parser.add_argument('-R', '--report', help="Print a human-readable report of the results of a search.", action="store_true")
+    parser.add_argument('-g', '--contrast', help="Contrast scaling factor.", default="1")
+    parser.add_argument('-p', '--preview', help="Print all quote matches to the screen with relevant information. Only used with -q/--quote.", action="store_true")
+    parser.add_argument('-P', '--print_info', help="Print information about the matched frame.", action='store_true')
     arguments = parser.parse_args(args)
     arguments.quote = str(arguments.quote)
-    arguments.index = int(arguments.index)
+    arguments.match_index = int(arguments.match_index)
     if arguments.caption != "":
         arguments.caption = str(arguments.caption)
     if arguments.season != "":
@@ -43,11 +44,12 @@ def check_args(args=None):
         arguments.timestamp = int(arguments.timestamp)
     if arguments.endTimestamp != "":
         arguments.endTimestamp = int(arguments.endTimestamp)
-    arguments.length = float(arguments.length)
-    arguments.speed = float(arguments.speed)
+    if arguments.length != "":
+        arguments.length = float(arguments.length)
+    arguments.interval = float(arguments.interval)
     arguments.char = int(arguments.char)
     arguments.width = int(arguments.width)
-    arguments.gcf = float(arguments.gcf)
+    arguments.contrast = float(arguments.contrast)
     return(arguments)
 
 
@@ -191,6 +193,8 @@ class Frinky:
                 self.match_list = result
             else:
                 self.search_result = result
+            if mode == 'random':
+                self.set_exact(result['Episode']['Season'], result['Episode']['EpisodeNumber'], result['Frame']['Timestamp'])
         return result
 
     def get_meme_url(self, season_episode, timestamp):
@@ -231,7 +235,14 @@ class Frinky:
             idx += 1
 
     def set_match_index(self, idx):
-        self.match_index = idx
+        try:
+            if idx < 0:
+                idx = 0
+            elif idx >= len(self.match_list):
+                idx = len(self.match_list) - 1
+            self.match_index = idx
+        except TypeError:
+            print(f"ERROR: {str(idx)} is not a valid index for match list {str(self.match_list)}.")
 
     def set_match(self):
         match = self.match_list[self.match_index]
@@ -278,7 +289,7 @@ class Frinky:
         self.timestamp_list = list(map(lambda x: x['Frame']['Timestamp'], self.data_list))
         # self.duration = (self.timestamp_list[-1] - self.timestamp_list[0]) / 1000
 
-    def get_caption_list(self, sep=" "):
+    def get_caption_list(self, sep="\n"):
         self.caption_list = [sep.join(map(lambda x: x['Content'], d['Subtitles'])) for d in self.data_list]
 
     def set_caption_list(self, caption):
@@ -297,7 +308,7 @@ class Frinky:
     def get_ascii_meme_list(self):
         self.ascii_meme_list = [self.img2ascii(m) for m in self.meme_list]
 
-    def show_meme(self, index=0, index_end=None, animated=False, interval=0.2, loops=0, caption=True):
+    def show_meme(self, index=0, index_end=None, animated=False, interval=0.2, loops=0, caption=True, print_info=False):
         if self.caption_list is None:
             caption = False
         if animated:
@@ -326,6 +337,9 @@ class Frinky:
                             print(caption_list[i])
                         else:
                             print(caption_list[math.floor(i * ratio)])
+                    if print_info:
+                        print("\n")
+                        print(f"({self.season_episode_to_string(self.season, self.episode)} @ {self.timestamp})")
                     time.sleep(interval)
                 if x == 1:
                     break
@@ -335,15 +349,53 @@ class Frinky:
             print(self.ascii_meme_list[index])
             if caption:
                 if len(self.caption_list) != len(self.ascii_meme_list):
-                    i = 0
+                    cap = self.caption_list[0]
                 else:
-                    i = index
+                    cap = self.caption_list[index]
                 print("\n")
-                print(self.caption_list[i])
+                print(cap)
+            if print_info:
+                print("\n")
+                print(f"({self.season_episode_to_string(self.season, self.episode)} @ {self.timestamp})")
 
-# if __name__ == '__main__':
-#     cmd_args = check_args(sys.argv[1:])
-#     if cmd_args.random:
+
+if __name__ == '__main__':
+    args = check_args(sys.argv[1:])
+    frinky = Frinky()
+    frinky.set_image_width(args.width)
+    frinky.set_image_contrast(args.contrast)
+    if args.season != "" and args.episode != "" and args.timestamp != "":
+        if args.endTimestamp != "":
+            end = args.endTimestamp
+        else:
+            end = None
+        frinky.set_exact(args.season, args.episode, args.timestamp, end)
+        frinky.search()
+    elif args.quote != "":
+        frinky.set_quote(args.quote)
+        frinky.search()
+        if args.preview:
+            frinky.preview_matches()
+        else:
+            frinky.set_match_index(args.match_index)
+            frinky.set_match()
+            frinky.search()
+    elif args.random:
+        frinky.set_random()
+        frinky.search()
+    else:
+        frinky.set_random()
+        frinky.search()
+    if args.endTimestamp == "" and args.length != "":
+        frinky.set_timestamp_end_from_duration(args.length)
+    if frinky.search_result is not None:
+        frinky.get_data_list()
+        frinky.get_timestamp_list()
+        frinky.get_url_list()
+        frinky.get_meme_list()
+        frinky.get_ascii_meme_list()
+        frinky.get_caption_list()
+        frinky.show_meme(animated=(args.gif and frinky.timestamp_end is not None), interval=args.interval, print_info=args.print_info)
 #         furl, quote = get_random_meme_url_caption()
 #     else:
 #         furl = search_quote_get_meme_url(cmd_args.quote)
