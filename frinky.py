@@ -62,7 +62,7 @@ class Frinky:
         self.episode = None
         self.timestamp = None
         self.timestamp_end = None
-        self.duration = None
+        # self.duration = None
         self.quote = None
         self.valid_modes = ['random', 'quote', 'exact']
         self.mode = "random"
@@ -240,7 +240,7 @@ class Frinky:
         self.set_exact(season, episode, timestamp)
         pass
 
-    def get_data_list(self):
+    def get_data_list(self, start_offset=0):
         ts = self.timestamp
         search_result = self.search_result
         data_list = [search_result]
@@ -255,11 +255,28 @@ class Frinky:
                     ts = times[ts_idx + 1]
                     search_result = self.search(mode='exact', season=self.season, episode=self.episode, timestamp=ts, set_result=False)
                     data_list.append(search_result)
+        if float(start_offset) > 0:
+            ts = self.timestamp
+            search_result = self.search_result
+            start_data_list = []
+            new_start = ts - math.floor(float(start_offset) * 1000)
+            while ts > new_start and new_start > 0:
+                nearby = search_result['Nearby']
+                times = [t for t in map(lambda x: x['Timestamp'], nearby)]
+                ts_idx = times.index(ts)
+                if ts_idx == 0:
+                    break
+                else:
+                    ts = times[ts_idx - 1]
+                    search_result = self.search(mode='exact', season=self.season, episode=self.episode, timestamp=ts, set_result=False)
+                    start_data_list.append(search_result)
+            start_data_list.reverse()
+            data_list = start_data_list + data_list
         self.data_list = data_list
 
     def get_timestamp_list(self):
         self.timestamp_list = list(map(lambda x: x['Frame']['Timestamp'], self.data_list))
-        self.duration = (self.timestamp_list[-1] - self.timestamp_list[0]) / 1000
+        # self.duration = (self.timestamp_list[-1] - self.timestamp_list[0]) / 1000
 
     def get_caption_list(self, sep=" "):
         self.caption_list = [sep.join(map(lambda x: x['Content'], d['Subtitles'])) for d in self.data_list]
@@ -280,24 +297,35 @@ class Frinky:
     def get_ascii_meme_list(self):
         self.ascii_meme_list = [self.img2ascii(m) for m in self.meme_list]
 
-    def show_meme(self, index=0, animated=False, interval=0.2, loops=0, caption=True):
+    def show_meme(self, index=0, index_end=None, animated=False, interval=0.2, loops=0, caption=True):
         if self.caption_list is None:
             caption = False
         if animated:
             ratio = None
-            if len(self.caption_list) < len(self.ascii_meme_list):
-                ratio = len(self.caption_list) / len(self.ascii_meme_list)
+            if index < 0:
+                index = 0
+            elif index >= len(self.ascii_meme_list):
+                index = len(self.ascii_meme_list) - 1
+            if index_end is not None and index_end <= index:
+                index_end = index_end + 1
+            if index_end is not None and index_end >= len(self.ascii_meme_list):
+                index_end = None
+            ascii_meme_list = self.ascii_meme_list[index:index_end]
+            if caption:
+                caption_list = self.caption_list[index:index_end]
+                if len(self.caption_list) < len(self.ascii_meme_list):
+                    ratio = len(self.caption_list) / len(self.ascii_meme_list)
             x = int(loops)
             while True:
-                for i, meme in enumerate(self.ascii_meme_list):
+                for i, meme in enumerate(ascii_meme_list):
                     os.system('clear')
                     print(meme)
                     if caption:
                         print("\n")
                         if ratio is None:
-                            print(self.caption_list[i])
+                            print(caption_list[i])
                         else:
-                            print(self.caption_list[math.floor(i * ratio)])
+                            print(caption_list[math.floor(i * ratio)])
                     time.sleep(interval)
                 if x == 1:
                     break
