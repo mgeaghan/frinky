@@ -322,6 +322,7 @@ class Frinky:
             if index_end is not None and index_end >= len(self.ascii_meme_list):
                 index_end = None
             ascii_meme_list = self.ascii_meme_list[index:index_end]
+            timestamp_list = self.timestamp_list[index:index_end]
             if caption:
                 caption_list = self.caption_list[index:index_end]
                 if len(self.caption_list) < len(self.ascii_meme_list):
@@ -339,7 +340,7 @@ class Frinky:
                             print(caption_list[math.floor(i * ratio)])
                     if print_info:
                         print("\n")
-                        print(f"({self.season_episode_to_string(self.season, self.episode)} @ {self.timestamp})")
+                        print(f"({self.season_episode_to_string(self.season, self.episode)} @ {timestamp_list[i]})")
                     time.sleep(interval)
                 if x == 1:
                     break
@@ -356,7 +357,7 @@ class Frinky:
                 print(cap)
             if print_info:
                 print("\n")
-                print(f"({self.season_episode_to_string(self.season, self.episode)} @ {self.timestamp})")
+                print(f"({self.season_episode_to_string(self.season, self.episode)} @ {self.timestamp_list[index]})")
 
 
 if __name__ == '__main__':
