@@ -25,6 +25,7 @@ def check_args(args=None):
     parser.add_argument('-T', '--endTimestamp', help="Specify an endpoint timestamp. Must be used in conjunction with -s/--season, -e/--episode, and -t/--timestamp. Only used when using -G/--gif.", default="")
     parser.add_argument('-G', '--gif', help="Specify an animation should be returned with specified length starting from first best match or from specified timestamp of specified episode. Must either specify a duration with -l/--length or an endpoint timestamp with -T/--endTimestamp.", action="store_true")
     parser.add_argument('-l', '--length', help="Specify length (in seconds) of animation to be returned. Only used in conjunction with -G/--gif.", default="")
+    parser.add_argument('-L', '--prefix_length', help="Specify length (in seconds) of additional animation to be returned prior to start frame. Only used in conjunction with -G/--gif.", default="")
     parser.add_argument('-I', '--interval', help="Specify the interval between frames, in seconds. Only used in conjunction with -G/--gif. Default = '0.2'.", default="0.2")
     parser.add_argument('-C', '--char', help="Specify a character set (e.g. 0, 1, 2, ...). Use if the default set doesn't work well. Default = '0'.", default="0")
     parser.add_argument('-w', '--width', help="ASCII art width.", default="120")
@@ -390,7 +391,7 @@ if __name__ == '__main__':
     if args.endTimestamp == "" and args.length != "":
         frinky.set_timestamp_end_from_duration(args.length)
     if frinky.search_result is not None:
-        frinky.get_data_list()
+        frinky.get_data_list(start_offset=(args.prefix_length if (args.gif and args.prefix_length != "") else 0))
         frinky.get_timestamp_list()
         frinky.get_url_list()
         frinky.get_meme_list()
